@@ -1,12 +1,11 @@
-/* COLOR-CHANGING NIGHT LIGHT
+/* COLOR CHANGING NIGHT LIGHT
  *
  * David Amos, 2016
  * somacdivad@gmail.com
  * https://github.com/somacdivad/puckjs-nightlight
  *
- * Color-changing night light for Puck.js. Pressing the button toggles the night
- * light. When activated, the night light slowly changes color. Each time the light 
- * is activated, the starting color and fade time is randomized slightly.
+ * A color changing night light for Puck.js. Automatically turns on when low
+ * ambient light is detected.
  */
 
 const _LED = [LED1, LED2, LED3];
@@ -14,7 +13,7 @@ const _X = 5;  // maximum interval between parameter increments (milliseconds)
 const _Y = 0.0001; // maximum parameter increment; make smaller for longer fades
 
 var ivalRef = [null, null, null],  // references to intervals set by setInterval
-    on = false;  // records whether or not the night light is on
+    on = false;
 
 // utility function for generating a random number between 0 and n
 function rand(n) {
@@ -49,18 +48,32 @@ function runLights() {
     fade(i, interval[i]).call();
 }
 
-// handler for button press; if the the night light on, run the lights; otherwise, 
+// toggle the night light; if the the night light on, run the lights; otherwise, 
 // clear intervals and turn the lights off.
-function btnHandler() {
+function toggleLights() {
   on = !on;
-  if (on)
+  if (on) {
     runLights();
-  else
+  }
+  else {
     for (var i in _LED) {
-      clearInterval(ivalRef[i]);
+      if (ivalRef[i]) clearInterval(ivalRef[i]);
       _LED[i].reset();
     }
+  }
 }
 
-// listen for button press
-setWatch(btnHandler, BTN, { edge: 'rising', debounce: 50, repeat: true });
+// function for probing ambient light and turning on the night light if
+// low light is detected
+function probeAmbientLight() {
+  let l = Puck.light();
+  if (l < 0.2 && !on) {
+    console.log(l);
+    if (ivalProbeLight) clearInterval(ivalProbeLight);
+    ivalProbeLight = false;
+    toggleLights();
+  }
+}
+
+// watch for button events
+setWatch(toggleLights, BTN, { edge: 'rising', debounce: 50, repeat: true });
