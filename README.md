@@ -1,5 +1,6 @@
 # puckjs-nightlight
 A color changing night light for Puck.js.
+
 ![Puck.js night light](nightlight.jpg?raw=true)
 
 ## About this project
