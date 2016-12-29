@@ -1,11 +1,13 @@
 /* COLOR CHANGING NIGHT LIGHT
- * Remote control script
+ * Auto sense script
  *
  * David Amos, 2016
  * somacdivad@gmail.com
  * https://github.com/somacdivad/puckjs-nightlight
  *
  * Control the color changing night light via a second Puck.js and UART
+ * utilizing the pucks light sensor to trigger the night light based on
+ * ambient light intensity.
  */
 
 const _NAME = 'Puck.js 9fb2';  // name of the puck to be controlled
@@ -35,7 +37,6 @@ function sendToggle() {
 }
 
 // function for starting ambient light sensor
-// returns a reference to an interval set by setInterval
 function ambientSense() {
   ambTimeout = setInterval(() => {
     var l = Puck.light(),
