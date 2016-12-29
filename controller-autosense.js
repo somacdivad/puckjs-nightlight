@@ -16,23 +16,30 @@ const _SENSE_TRIGGER = 0.1;    // light trigger intensity for toggling night lig
 
 var uart = require('ble_simple_uart'),
     ambTimeout = false,
-    on = false;
+    on = false,
+    busy = false;
 
 // function for sending toggleLights command to remote puck via UART
 function sendToggle() {
-  try {
-    NRF.requestDevice({ filters: [{ name: _NAME }] }).then((dev) => {
-      uart.write(dev, 'toggleLights()\r');
-    }).then(() => {
-      on = !on;
-      ambientSense();
-    }).catch((e) => {
+  if (!busy) {
+    try {
+      busy = true;
+      NRF.requestDevice({ filters: [{ name: _NAME }] }).then((dev) => {
+        uart.write(dev, 'toggleLights()\r');
+      }).then(() => {
+        on = !on;
+        busy = false;
+        ambientSense();
+      }).catch((e) => {
+        busy = false;
+        console.log('error', e);
+        ambientSense();
+      });
+    } catch (e) {
+      busy = false;
       console.log('error', e);
       ambientSense();
-    });
-  } catch (e) {
-    console.log('error', e);
-    ambientSense();
+    }
   }
 }
 
