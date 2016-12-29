@@ -22,8 +22,8 @@ var uart = require('ble_simple_uart'),
 // function for sending toggleLights command to remote puck via UART
 function sendToggle() {
   if (!busy) {
+    busy = true;
     try {
-      busy = true;
       NRF.requestDevice({ filters: [{ name: _NAME }] }).then((dev) => {
         uart.write(dev, 'toggleLights()\r');
       }).then(() => {
