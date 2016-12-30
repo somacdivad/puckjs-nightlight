@@ -7,10 +7,10 @@
  * A color changing night light for Puck.js.
  */
 
-const _OFF_TIMEOUT = 30000; // turn off nightlight after 30 minutes
+const _OFF_TIMEOUT = 1800000; // turn off nightlight after 30 minutes
 const _FREQ = 23;
 const _INCR_MAX = 0.001;
-const _INCR_MIN = 0.00001;
+const _INCR_MIN = 0.000005;
 
 var led = [LED1, LED2, LED3],
     intervalRef = [null, null, null], // led value update intervals
