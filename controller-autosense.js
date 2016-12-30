@@ -12,7 +12,7 @@
 
 const _NAME = 'Puck.js 9fb2';  // name of the puck to be controlled
 const _SENSE_INTERVAL = 1000;  // time between light sensor readings
-const _SENSE_TRIGGER = 0.1;    // light trigger intensity for toggling night light on/off
+const _SENSE_TRIGGER = 0.3;    // light trigger intensity for toggling night light on/off
 
 var uart = require('ble_simple_uart'),
     ambTimeout = false,
@@ -25,7 +25,7 @@ function sendToggle() {
     busy = true;
     try {
       NRF.requestDevice({ filters: [{ name: _NAME }] }).then((dev) => {
-        uart.write(dev, 'toggleLights()\r');
+        uart.write(dev, 'toggleNightlight()\n');
       }).then(() => {
         on = !on;
         busy = false;

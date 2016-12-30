@@ -1,7 +1,7 @@
 # puckjs-nightlight
 A color changing night light for Puck.js.
 
-![Puck.js night light](nightlight.jpg?raw=true)
+![Puck.js night light](img/nightlight.jpg?raw=true)
 
 ## About this project
 I wanted to make something fun for my 9-year-old daughter with my Puck.js and had the idea for a color changing night light that she could turn on and off easily. Although simple, this project does make use of various capabilites of the Puck.js. The night light can work in standalone mode, or can be combined with a second puck for remote control.

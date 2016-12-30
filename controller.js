@@ -10,22 +10,22 @@
 
 var uart = require('ble_simple_uart');
 
-const _NAME = 'Puck.js 9fb2',  // name of the puck to be controlled
-      _RESET_TIMEOUT = 5000;      // 5 seconds
+const _NAME = 'Puck.js 9fb2';  // rename this to match the Puck.js night light
+const _RESET_TIMEOUT = 5000;
 
-var tmReset = false;  // timeout id for setTimeout used to reset puck
+var tmReset = false;          // timeout id for setTimeout used to reset puck
 
-// utility function for handling error
+// handle errors
 function err(e) {
   console.log('error', e);
   digitalPulse(LED1, 1, [125, 125, 125, 125, 125]); // flash red light 3 times
 }
 
-// function for sending toggle command to remote puck via UART
+// send toggle command to remote puck via UART
 function sendToggle() {
   try {
     NRF.requestDevice({ filters: [{ name: _NAME }] }).then((dev) => {
-      uart.write(dev, 'toggleLights()\n');
+      uart.write(dev, 'toggleNightlight()\n');
     }).catch((e) => {
       err(e);
     });

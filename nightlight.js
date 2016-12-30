@@ -4,76 +4,90 @@
  * somacdivad@gmail.com
  * https://github.com/somacdivad/puckjs-nightlight
  *
- * A color changing night light for Puck.js. Automatically turns on when low
- * ambient light is detected.
+ * A color changing night light for Puck.js.
  */
 
-const _LED = [LED1, LED2, LED3];
-const _X = 5;  // maximum interval between parameter increments (milliseconds)
-const _Y = 0.0001; // maximum parameter increment; make smaller for longer fades
+const _OFF_TIMEOUT = 30000; // turn off nightlight after 30 minutes
+const _FREQ = 23;
+const _INCR_MAX = 0.001;
+const _INCR_MIN = 0.00001;
 
-var ivalRef = [null, null, null],  // references to intervals set by setInterval
-    on = false;
+var led = [LED1, LED2, LED3],
+    intervalRef = [null, null, null], // led value update intervals
+    tmOffRef = false,  // off timeout
+    on = false; // are we on?
 
-// utility function for generating a random number between 0 and n
-function rand(n) {
-  return n * Math.random();
+// utility function for Fisher-Yates shuffling an array
+// happily borrowed from Frank Mitchell
+// https://www.frankmitchell.org/2015/01/fisher-yates/
+function shuffle (array) {
+  let i = 0,
+      j = 0,
+      temp = null
+
+  for (i = array.length - 1; i > 0; i -= 1) {
+    j = Math.floor(Math.random() * (i + 1))
+    temp = array[i]
+    array[i] = array[j]
+    array[j] = temp
+  }
 }
 
-// function for running the night light
-function runLights() {
-  let t = [0, 0, 0],  // parameters for light value function
-      interval = [rand(_X), rand(_X), rand(_X)], // intervals for LEDs 1, 2 and 3
-      increment = [rand(_Y), rand(_Y), rand(_Y)]; // parameter increments for LEDs 1, 2 and 3
-
-  // set light intensity to the absolute value of the sin of the corresponding parameter
-  // and increment the parameter by the corresponding increment value
-  function cycle(n) {
-    return () => {
-      var val = Math.abs(Math.sin(t[n]));
-      analogWrite(_LED[n], val);
-      t[n] += increment[n];
-    };
-  }
-
-  // set an interval for calling the cycle function
-  function fade(n, t) {
-    return () => {
-      ivalRef[n] = setInterval(cycle(n), t);
-    };
-  }
-
-  // start the fade for each LED
-  for (var i in _LED)
-    fade(i, interval[i]).call();
+// randomly generate number between _INCR_MIN and _INCR_MAX for LED value increments
+function randIncr() {
+  return _INCR_MIN + (_INCR_MAX - _INCR_MIN) * Math.random();
 }
 
-// toggle the night light; if the the night light on, run the lights; otherwise, 
-// clear intervals and turn the lights off.
-function toggleLights() {
-  on = !on;
-  if (on) {
-    runLights();
+// turn night light on
+function nightlightOn() {
+  let t = [0, 0, 0],
+      increment = [randIncr(), randIncr(), randIncr()];
+
+  function setValue(i) {
+    analogWrite(led[i], Math.abs(Math.sin(t[i])));
+    t[i] += increment[i];
   }
-  else {
-    for (var i in _LED) {
-      if (ivalRef[i]) clearInterval(ivalRef[i]);
-      _LED[i].reset();
+
+  function fade(i) {
+    intervalRef[i] = setInterval(setValue, _FREQ, i);
+  }
+
+  shuffle(led);
+
+  for (let i in led) {
+    // fade the first led immediately and the remaining two randomly between 1 and 10 seconds;
+    let timeout = (i == 0) ? 100 : 9999 * Math.random() + 1;
+    setTimeout(fade, timeout, i);
+  }
+
+  // turn night light off after _OFF_TIMEOUT seconds
+  tmOffRef = setTimeout(nightlightOff, _OFF_TIMEOUT)
+}
+
+// turn night light off
+function nightlightOff() {
+  on = false;
+  if (tmOffRef) {
+    clearTimeout(tmOffRef);
+    tmOffRef = false;
+  }
+  for (let i in led) {
+    if (intervalRef[i]) {
+      clearInterval(intervalRef[i]);
+      intervalRef[i] = false;
     }
+    led[i].reset();
   }
 }
 
-// function for probing ambient light and turning on the night light if
-// low light is detected
-function probeAmbientLight() {
-  let l = Puck.light();
-  if (l < 0.2 && !on) {
-    console.log(l);
-    if (ivalProbeLight) clearInterval(ivalProbeLight);
-    ivalProbeLight = false;
-    toggleLights();
-  }
+// toggle the night light
+function toggleNightlight() {
+  on = !on;
+  if (on)
+    nightlightOn();
+  else
+    nightlightOff();
 }
 
 // watch for button events
-setWatch(toggleLights, BTN, { edge: 'rising', debounce: 50, repeat: true });
+setWatch(toggleNightlight, BTN, { edge: 'rising', debounce: 50, repeat: true });
